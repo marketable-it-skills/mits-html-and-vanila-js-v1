@@ -32,11 +32,12 @@ jobs:
           NODE_ENV: production
           GRAPGHQL_BASE: https://backend.szakmasztar-app.httpf.hu/graphql
         run: |
-          TAG=${GITHUB_REF#refs/tags/}
+          TAG=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
           docker build -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:$TAG -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest .
 
       - name: Push Docker image
         run: |
+          TAG=$(echo ${GITHUB_REF#refs/heads/} | tr '/' '-')
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:$TAG
           docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
