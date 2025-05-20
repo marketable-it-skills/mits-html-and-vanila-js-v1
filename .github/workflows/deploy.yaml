@@ -1,0 +1,42 @@
+name: Deploy to prod
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      packages: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v3
+        with:
+          path: /var/lib/docker
+          key: ${{ runner.os }}-docker-${{ github.repository }}
+          restore-keys: |
+            ${{ runner.os }}-docker-
+
+      - name: Build Docker image
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          SITE_BASE: https://app.szakmasztar.httpf.hu
+          NODE_ENV: production
+          GRAPGHQL_BASE: https://backend.szakmasztar-app.httpf.hu/graphql
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          docker build -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:$TAG -t ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest .
+
+      - name: Push Docker image
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:$TAG
+          docker push ghcr.io/${{ github.repository_owner }}/${{ github.repository }}:latest
