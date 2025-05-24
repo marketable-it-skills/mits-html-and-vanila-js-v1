@@ -1,6 +1,6 @@
 services:
   web:
-    image: ghcr.io/<your-github-account/<your-repo-name>/<your-repo-name>:latest
+    image: ghcr.io/<your-github-account>/<your-repo-name>:latest
     ports:
       - "80:80"
     restart: unless-stopped
